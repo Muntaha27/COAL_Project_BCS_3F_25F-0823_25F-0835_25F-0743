@@ -1,0 +1,87 @@
+; PHASE1 module 2: VGA MODE PALETTE COLOURS RECTANGLE DRAWING
+; colour defines
+COL_TRANSPARENT equ 0x00
+COL_BLACK       equ 0x00
+COL_BLUE_SKY    equ 0x35        ; Morning sky blue
+COL_WHITE       equ 0x0F        ; Bunny fur / Text / Flag pole
+COL_PINK        equ 0x26        ; Bunny inner ears & nose
+COL_RED         equ 0x28        ; Hearts / Eyes / Boots
+COL_ORANGE      equ 0x2A        ; Carrots / Tunic
+COL_BROWN       equ 0x06        ; Earth / Hedgehog
+COL_WOOD_DARK   equ 0x72        ; Crate / Spikes
+COL_GREEN       equ 0x02        ; Emerald Log (Pipe)
+COL_GREEN_LIGHT equ 0x2F        ; Meadow grass top
+COL_YELLOW      equ 0x2C        ; Coins / '?' blocks
+COL_PURPLE      equ 0x23        ; Beetle shell
+COL_CYAN        equ 0x33        ; Beetle trim
+COL_GRAY        equ 0x07        ; Stairs
+COL_DARK_GRAY   equ 0x08        ; Used block
+; draw filled rectangle
+fill_rect:
+    push bp
+    mov bp, sp
+    push ax
+    push bx
+    push cx
+    push dx
+    push si
+    push di
+    push es
+
+    mov es, [buffer_seg]
+    mov si, [bp+10]
+    mov dx, [bp+6]
+    cld
+; loop begins
+.row_loop:
+    cmp dx, 0
+    jle .done
+    cmp si, 0
+    jl .next_row
+    cmp si, SCREEN_H
+    jge .done
+
+    mov bx, [bp+12]
+    mov cx, [bp+8]
+    cmp bx, 0
+    jge .chk_right_clip
+    add cx, bx
+    xor bx, bx
+    ; check right boundry
+.chk_right_clip:
+    mov ax, bx
+    add ax, cx
+    cmp ax, SCREEN_W
+    jle .draw_span
+    mov cx, SCREEN_W
+    sub cx, bx
+    ; check visible width
+.draw_span:
+    cmp cx, 0
+    jle .next_row
+
+    mov di, si
+    shl di, 8
+    mov ax, si
+    shl ax, 6
+    add di, ax
+    add di, bx
+
+    mov al, [bp+4]
+    rep stosb
+
+.next_row:
+    inc si
+    dec dx
+    jmp .row_loop
+
+.done:
+    pop es
+    pop di
+    pop si
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    pop bp
+    ret 10
